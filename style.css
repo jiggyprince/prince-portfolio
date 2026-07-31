@@ -209,6 +209,21 @@ section{ position:relative; z-index:2; padding: 100px 24px; max-width: 1160px; m
 }
 .axder-cta p{ color: var(--text-dim); max-width: 420px; }
 
+.company-banner{
+  margin-top: 22px; display:flex; align-items:center; gap: 22px; flex-wrap:wrap;
+  background: linear-gradient(120deg, rgba(139,92,246,.08), rgba(34,211,238,.06));
+  border: 1px solid var(--border); border-radius: var(--radius); padding: 26px 30px;
+}
+.company-mark{ width: 64px; height:64px; flex-shrink:0; border-radius: 12px; object-fit: cover; }
+.company-info h3{ font-family: var(--font-display); font-size: 1.1rem; margin-bottom: 4px; }
+.company-tagline{
+  font-family: var(--font-mono); font-size: .76rem; letter-spacing:.06em; text-transform:uppercase;
+  color: var(--cyan); margin-bottom: 8px !important;
+}
+.company-info p{ color: var(--text-dim); font-size: .92rem; max-width: 560px; margin-bottom: 14px; }
+.company-links{ display:flex; gap: 10px; flex-wrap:wrap; }
+.btn-sm{ padding: 8px 16px; font-size: .82rem; }
+
 /* ══════════════════════════════════════════════════════════════════
    OTHER WORK
    ══════════════════════════════════════════════════════════════════ */
