@@ -32,8 +32,8 @@ const openFromAxder = document.getElementById('openChatFromAxder');
 
 let history = []; // { role: 'user'|'assistant', content: string }
 
-function openChat(){ chatPanel.classList.add('open'); chatInput.focus(); }
-function closeChat(){ chatPanel.classList.remove('open'); }
+function openChat(){ chatPanel.classList.add('open'); chatInput.focus(); document.body.style.overflow = 'hidden'; }
+function closeChat(){ chatPanel.classList.remove('open'); document.body.style.overflow = ''; }
 
 chatFab.addEventListener('click', () => chatPanel.classList.contains('open') ? closeChat() : openChat());
 chatClose.addEventListener('click', closeChat);
