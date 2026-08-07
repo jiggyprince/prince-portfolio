@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0A0B10; --surface:#14161F; --surface2:#191C27;
+    --border:rgba(255,255,255,.08); --text:#F2F3F7; --dim:#9297A8; --faint:#5C6070;
+    --violet:#8B5CF6; --cyan:#22D3EE; --amber:#F5A623; --red:#EF5350;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:Inter,system-ui,sans-serif;line-height:1.6}
+  .wrap{max-width:900px;margin:0 auto;padding:48px 20px}
+
+  /* Login */
+  .login{max-width:340px;margin:14vh auto;text-align:center}
+  .login h1{font-size:1.25rem;margin-bottom:6px}
+  .login p{color:var(--dim);font-size:.9rem;margin-bottom:22px}
+  input[type=password]{
+    width:100%;background:var(--surface);border:1px solid var(--border);border-radius:10px;
+    padding:13px 15px;color:var(--text);font-size:16px;font-family:inherit;margin-bottom:10px
+  }
+  input[type=password]:focus{outline:none;border-color:var(--violet)}
+  button{
+    width:100%;background:linear-gradient(120deg,var(--violet),var(--cyan));color:#06070A;
+    border:none;border-radius:10px;padding:13px;font-weight:600;font-size:.95rem;cursor:pointer;font-family:inherit
+  }
+  button:disabled{opacity:.5;cursor:default}
+  .err{color:var(--red);font-size:.85rem;margin-top:10px;min-height:20px}
+
+  /* List */
+  .head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:22px;flex-wrap:wrap;gap:10px}
+  .head h1{font-size:1.3rem}
+  .head .meta{color:var(--faint);font-size:.85rem}
+  .refresh{width:auto;padding:8px 16px;font-size:.82rem}
+
+  .convo{background:var(--surface);border:1px solid var(--border);border-radius:14px;margin-bottom:12px;overflow:hidden}
+  .convo-head{padding:14px 18px;display:flex;align-items:center;gap:10px;cursor:pointer;flex-wrap:wrap}
+  .convo-head:hover{background:var(--surface2)}
+  .tag{font-family:'JetBrains Mono',monospace;font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;
+       padding:3px 9px;border-radius:999px;border:1px solid var(--border);color:var(--dim)}
+  .tag.serious{color:var(--cyan);border-color:rgba(34,211,238,.4)}
+  .tag.blocked{color:var(--red);border-color:rgba(239,83,80,.4)}
+  .when{color:var(--faint);font-size:.8rem;margin-left:auto}
+  .preview{color:var(--dim);font-size:.88rem;width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .msgs{display:none;padding:6px 18px 18px;border-top:1px solid var(--border)}
+  .msgs.open{display:block}
+  .m{margin:10px 0;font-size:.9rem;max-width:88%}
+  .m .who{font-family:'JetBrains Mono',monospace;font-size:.68rem;text-transform:uppercase;
+          letter-spacing:.08em;color:var(--faint);display:block;margin-bottom:3px}
+  .m.user{margin-left:auto;text-align:right}
+  .m.user .body{background:linear-gradient(120deg,var(--violet),var(--cyan));color:#06070A;
+                padding:9px 13px;border-radius:12px;display:inline-block;text-align:left}
+  .m.bot .body{background:var(--surface2);border:1px solid var(--border);
+               padding:9px 13px;border-radius:12px;display:inline-block}
+  .empty{color:var(--faint);text-align:center;padding:50px 0;font-size:.92rem}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div id="login" class="login">
+    <h1>Dashboard</h1>
+    <p>Enter your password to continue.</p>
+    <input type="password" id="pw" placeholder="Password" autocomplete="current-password">
+    <button id="go">Open</button>
+    <div class="err" id="err"></div>
+  </div>
+
+  <div id="panel" style="display:none">
+    <div class="head">
+      <div>
+        <h1>Conversations</h1>
+        <div class="meta" id="meta"></div>
+      </div>
+      <button class="refresh" id="refresh">Refresh</button>
+    </div>
+    <div id="list"></div>
+  </div>
+</div>
+
+<script>
+let password = "";
+
+const $ = (id) => document.getElementById(id);
+
+async function load() {
+  $("err").textContent = "";
+  $("go").disabled = true;
+  try {
+    const res = await fetch("/.netlify/functions/dashboard", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password })
+    });
+    if (res.status === 401) {
+      $("err").textContent = "Incorrect password";
+      $("go").disabled = false;
+      return;
+    }
+    const data = await res.json();
+    $("login").style.display = "none";
+    $("panel").style.display = "block";
+    render(data);
+  } catch (e) {
+    $("err").textContent = "Couldn't connect. Try again.";
+  }
+  $("go").disabled = false;
+}
+
+function timeAgo(ts) {
+  if (!ts) return "";
+  const s = Math.floor((Date.now() - ts) / 1000);
+  if (s < 60) return "just now";
+  if (s < 3600) return Math.floor(s / 60) + "m ago";
+  if (s < 86400) return Math.floor(s / 3600) + "h ago";
+  return Math.floor(s / 86400) + "d ago";
+}
+
+function render(data) {
+  const list = $("list");
+  const convos = data.conversations || [];
+  $("meta").textContent = convos.length
+    ? convos.length + " conversation" + (convos.length === 1 ? "" : "s")
+    : "";
+  if (!convos.length) {
+    list.innerHTML = '<div class="empty">No conversations yet.</div>';
+    return;
+  }
+  list.innerHTML = "";
+  convos.forEach((c, i) => {
+    const firstUser = (c.messages || []).find((m) => m.role === "user");
+    const el = document.createElement("div");
+    el.className = "convo";
+    const tags =
+      (c.serious ? '<span class="tag serious">opportunity</span>' : '<span class="tag">visitor</span>') +
+      (c.blocked ? '<span class="tag blocked">blocked</span>' : "");
+    el.innerHTML =
+      '<div class="convo-head" data-i="' + i + '">' +
+        tags +
+        '<span class="when">' + timeAgo(c.updated) + " · " + (c.turns || 0) + " turns</span>" +
+        '<div class="preview">' + escapeHtml(firstUser ? firstUser.content : "(no messages)") + "</div>" +
+      "</div>" +
+      '<div class="msgs" id="msgs-' + i + '"></div>';
+    list.appendChild(el);
+
+    const box = el.querySelector("#msgs-" + i);
+    (c.messages || []).forEach((m) => {
+      const d = document.createElement("div");
+      d.className = "m " + (m.role === "user" ? "user" : "bot");
+      d.innerHTML =
+        '<span class="who">' + (m.role === "user" ? "Visitor" : "Axder") + "</span>" +
+        '<span class="body">' + escapeHtml(m.content) + "</span>";
+      box.appendChild(d);
+    });
+
+    el.querySelector(".convo-head").addEventListener("click", () => box.classList.toggle("open"));
+  });
+}
+
+function escapeHtml(s) {
+  return String(s || "").replace(/[&<>"']/g, (c) =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])
+  );
+}
+
+$("go").addEventListener("click", () => { password = $("pw").value; load(); });
+$("pw").addEventListener("keydown", (e) => { if (e.key === "Enter") { password = $("pw").value; load(); } });
+$("refresh").addEventListener("click", load);
+</script>
+</body>
+</html>

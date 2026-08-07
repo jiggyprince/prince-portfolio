@@ -386,3 +386,12 @@ section{ position:relative; z-index:2; padding: 100px 24px; max-width: 1160px; m
   }
   .chat-input-row input{ font-size: 16px; }
 }
+
+/* Contact card rendered as a button (Chat with Axder) — must match the
+   anchor cards exactly so the row reads as one consistent set. */
+.contact-card--btn{
+  font-family: inherit; text-align: left; cursor: pointer;
+  background: var(--surface); border: 1px solid var(--border);
+  color: var(--text); width: 100%;
+}
+.contact-card--btn:hover{ transform: translateY(-3px); border-color: var(--violet); }

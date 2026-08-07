@@ -2,8 +2,9 @@
   "name": "prince-portfolio",
   "version": "1.0.0",
   "private": true,
-  "description": "Prince Alex Esumei — portfolio site with Axder AI chat assistant",
-  "engines": {
-    "node": ">=18"
+  "description": "Prince Alex Esumei — portfolio with Axder assistant",
+  "engines": { "node": ">=18" },
+  "dependencies": {
+    "@netlify/blobs": "^10.7.12"
   }
 }
